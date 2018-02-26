@@ -15,7 +15,7 @@ public interface IProdcutService {
      * @param product
      * @return
      */
-    ServerResponse saveOrUpdateProduct(Product product);
+    ServerResponse<String> saveOrUpdateProduct(Product product);
 
     /**
      * 设置商品后台状态 上架或下架

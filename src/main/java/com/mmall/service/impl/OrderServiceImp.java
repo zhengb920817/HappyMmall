@@ -61,7 +61,7 @@ public class OrderServiceImp implements IOrderService{
     private ShippingMapper shippingMapper;
 
     @Transactional
-    public ServerResponse pay(Long orderNo, Integer userId, String savePath) {
+    public ServerResponse<Map<String,String>> pay(Long orderNo, Integer userId, String savePath) {
 
         Map<String, String> resultMap = new HashMap<>();
 
@@ -131,7 +131,7 @@ public class OrderServiceImp implements IOrderService{
      * @return
      */
     @Transactional
-    public ServerResponse alipayCallBack(Map<String, String> params){
+    public ServerResponse<String> alipayCallBack(Map<String, String> params){
         try {
             boolean alipaySiganaturCheck =
                     AlipaySignature.rsaCheckV2(params, Configs.getAlipayPublicKey(),
@@ -178,7 +178,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
-    public ServerResponse queryOrderPayStatus(Integer userId, Long orderNo) {
+    public ServerResponse<Boolean> queryOrderPayStatus(Integer userId, Long orderNo) {
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order == null) {
             return ServerResponse.createByErrorMessage("用户没有该订单");

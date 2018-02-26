@@ -39,7 +39,7 @@ public class ProductServiceImp implements IProdcutService {
     private ICategoryService iCategoryService;
 
     @Transactional
-    public ServerResponse saveOrUpdateProduct(Product product){
+    public ServerResponse<String> saveOrUpdateProduct(Product product){
         if(product != null){
             String subImages = product.getSubImages();
             if(!StringUtils.isBlank(subImages)){
@@ -166,7 +166,7 @@ public class ProductServiceImp implements IProdcutService {
         }
 
         List<Product> productList = productMapper.selectByNameAndProductId(searcheProductName, productId);
-        PageInfo pageResult = getPageResult(productList);
+        PageInfo<ProductListVO> pageResult = getPageResult(productList);
         return ServerResponse.createBySuccess(pageResult);
     }
 

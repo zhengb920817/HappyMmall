@@ -16,7 +16,7 @@ public interface ICategoryService {
      * @param parentId 父品类id
      * @return
      */
-    ServerResponse addCategory(String categoryName, Integer parentId);
+    ServerResponse<String> addCategory(String categoryName, Integer parentId);
 
     /**
      * 根据id更新品类
@@ -24,7 +24,7 @@ public interface ICategoryService {
      * @param categoryName
      * @return
      */
-    ServerResponse updateCategoryName(Integer categoryId,String categoryName);
+    ServerResponse<String> updateCategoryName(Integer categoryId,String categoryName);
 
     /**
      * 根据id获取其子类品类详情

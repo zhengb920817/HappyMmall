@@ -69,7 +69,7 @@ public class UserServiceImp implements IUserService{
     @Transactional
     public ServerResponse<String> registerUser(User user){
         //校验用户名
-        ServerResponse validResponse = this.checkValid(user.getUsername(),Const.USERNAME);
+        ServerResponse<String> validResponse = this.checkValid(user.getUsername(),Const.USERNAME);
         if(!validResponse.isSuccess()){
             return validResponse;
         }
@@ -123,7 +123,7 @@ public class UserServiceImp implements IUserService{
 
     @Transactional
     public ServerResponse<String> forgeGetQustion(@RequestParam("username") String username){
-       ServerResponse response = this.checkValid(username, Const.USERNAME);
+       ServerResponse<String> response = this.checkValid(username, Const.USERNAME);
        if(response.isSuccess()){
            //用户不存在
            return ServerResponse.createByErrorMessage("用户不存在");

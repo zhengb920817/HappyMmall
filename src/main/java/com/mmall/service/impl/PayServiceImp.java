@@ -84,7 +84,7 @@ public class PayServiceImp implements IPayService {
                 precreateResponse.setBody(responseBody);
                 precreateResponse.setQrCode(response.getQrCode());
                 precreateResponse.setTradeNo(response.getOutTradeNo());
-                return PayResult.createPayResultSuccessMessage(precreateResponse,PayResultEnum.SUCCESS);
+                return PayResult.createPayResultSuccessMessage(precreateResponse);
             case FAILED:
                 return PayResult.createPayResultFailMessage(PayResultEnum.FAILED);
             case UNKNOWN:
@@ -100,7 +100,7 @@ public class PayServiceImp implements IPayService {
      * @param aliPayInfo
      * @return 支付结果信息
      */
-    public PayResult trade_precreate(AliPayInfo aliPayInfo) {
+    public PayResult<PayPrecreateResponse> trade_precreate(AliPayInfo aliPayInfo) {
 
         // (必填) 商户网站订单系统中唯一订单号，64个字符以内，只能包含字母、数字、下划线，
         // 需保证商户系统端不能重复，建议通过数据库sequence生成，

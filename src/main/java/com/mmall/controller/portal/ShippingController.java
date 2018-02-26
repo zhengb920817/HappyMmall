@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpSession;
 
 /**
@@ -29,7 +31,7 @@ public class ShippingController {
     @RequestMapping(value = "add.do")
     @ResponseBody
     //添加收货地址
-    public ServerResponse add(HttpSession session, Shipping shipping){
+    public ServerResponse<Map<String, Integer>> add(HttpSession session, Shipping shipping){
         User user = (User) session.getAttribute(Const.CURRENT_USER);
         if (user == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
@@ -42,7 +44,7 @@ public class ShippingController {
     @RequestMapping(value = "del.do")
     @ResponseBody
     //添加收货地址
-    public ServerResponse delete(HttpSession session, @RequestParam("shippingId") Integer shippingId) {
+    public ServerResponse<String> delete(HttpSession session, @RequestParam("shippingId") Integer shippingId) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
         if (user == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
@@ -55,7 +57,7 @@ public class ShippingController {
     @RequestMapping(value = "update.do")
     @ResponseBody
     //更新收货地址
-    public ServerResponse update(HttpSession session, Shipping shipping) {
+    public ServerResponse<String> update(HttpSession session, Shipping shipping) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
         if (user == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
@@ -68,7 +70,7 @@ public class ShippingController {
     @RequestMapping(value = "select.do")
     @ResponseBody
     //更新收货地址
-    public ServerResponse select(HttpSession session, @RequestParam("shippingId") Integer shippingId) {
+    public ServerResponse<Shipping> select(HttpSession session, @RequestParam("shippingId") Integer shippingId) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
         if (user == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),

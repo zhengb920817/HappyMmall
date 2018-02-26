@@ -29,7 +29,7 @@ public class CategoryServiceImp implements ICategoryService{
     private CategoryMapper categoryMapper;
 
     @Transactional
-    public ServerResponse addCategory(String categoryName, Integer parentId){
+    public ServerResponse<String> addCategory(String categoryName, Integer parentId){
         if(StringUtils.isBlank(categoryName)){
             return ServerResponse.createByErrorMessage("添加品类错误，参数错误");
         }
@@ -50,7 +50,7 @@ public class CategoryServiceImp implements ICategoryService{
     }
 
     @Transactional
-    public ServerResponse updateCategoryName(Integer categoryId, String categoryName){
+    public ServerResponse<String> updateCategoryName(Integer categoryId, String categoryName){
         if(StringUtils.isBlank(categoryName)){
             return ServerResponse.createByErrorMessage("更新品类参数错误");
         }

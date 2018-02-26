@@ -18,14 +18,14 @@ public interface IOrderService {
      * @param savePath 二维码图片保存路径
      * @return
      */
-    ServerResponse pay(Long orderNo, Integer userId, String savePath);
+    ServerResponse<Map<String,String>> pay(Long orderNo, Integer userId, String savePath);
 
     /**
      * 支付宝回调--校验回调的正确性
      * @param params
      * @return
      */
-    ServerResponse alipayCallBack(Map<String,String> params);
+    ServerResponse<String> alipayCallBack(Map<String,String> params);
 
     /**
      * 查询支付状态
@@ -33,7 +33,7 @@ public interface IOrderService {
      * @param orderNo
      * @return
      */
-    ServerResponse queryOrderPayStatus(Integer userId, Long orderNo);
+    ServerResponse<Boolean> queryOrderPayStatus(Integer userId, Long orderNo);
 
     /**
      * 生成订单

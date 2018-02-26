@@ -1,5 +1,6 @@
 package com.mmall.controller.portal;
 
+import com.github.pagehelper.PageInfo;
 import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
@@ -37,7 +38,7 @@ public class OrderController {
     /**
      * 支付操作
      */
-    public ServerResponse pay(HttpSession session, HttpServletRequest servletRequest,
+    public ServerResponse<Map<String,String>> pay(HttpSession session, HttpServletRequest servletRequest,
                                                    @RequestParam("orderNo") Long orderNo) {
         User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
         if (curLoginUser == null) {
@@ -52,7 +53,7 @@ public class OrderController {
 
     @RequestMapping(value = "alipay_callback.do")
     @ResponseBody
-    public Object alipayCallBack(HttpServletRequest servletRequest) {
+    public String alipayCallBack(HttpServletRequest servletRequest) {
         Map<String, String[]> requestMap = servletRequest.getParameterMap();
         Map<String, String> params = new HashMap<>();
         //支付支付宝回到过来的参数 组装成map
@@ -78,7 +79,7 @@ public class OrderController {
         if (params.containsKey("sign_type"))
             params.remove("sign_type");
 
-        ServerResponse response = iOrderService.alipayCallBack(params);
+        ServerResponse<String> response = iOrderService.alipayCallBack(params);
         if (response.isSuccess())
             return Const.AliPayCallBack.RESPONSE_SUCCESS;
 
@@ -94,7 +95,7 @@ public class OrderController {
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        ServerResponse response = iOrderService.queryOrderPayStatus(curLoginUser.getId(), orderNo);
+        ServerResponse<Boolean> response = iOrderService.queryOrderPayStatus(curLoginUser.getId(), orderNo);
         if(response.isSuccess()){
             return ServerResponse.createBySuccess(Boolean.TRUE);
         }
@@ -153,7 +154,7 @@ public class OrderController {
 
     @RequestMapping(value = "list.do")
     @ResponseBody
-    public ServerResponse getList(HttpSession session,
+    public ServerResponse<PageInfo<OrderVO>> getList(HttpSession session,
                                            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
                                            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);

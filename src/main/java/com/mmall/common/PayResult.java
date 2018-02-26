@@ -33,12 +33,16 @@ public class PayResult<T>{
         this.respMsg = respMsg;
         this.tradeStatus = tradeStatus;
     }
-
-    public static <T> PayResult createPayResultSuccessMessage(T respMsg, PayResultEnum resultEnum) {
-        return new PayResult(respMsg, resultEnum);
+    
+    private PayResult(PayResultEnum tradeStatus){
+        this.tradeStatus = tradeStatus;
     }
 
-    public static PayResult createPayResultFailMessage(PayResultEnum resultEnum){
-        return new PayResult(resultEnum.getDesc(), resultEnum);
+    public static <T> PayResult<T> createPayResultSuccessMessage(T respMsg) {
+        return new PayResult<T>(respMsg, PayResultEnum.SUCCESS);
+    }
+
+    public static <T> PayResult<T> createPayResultFailMessage(PayResultEnum resultEnum){
+        return new PayResult<T>(resultEnum);
     }
 }

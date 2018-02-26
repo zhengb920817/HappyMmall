@@ -140,7 +140,7 @@ public class UserController {
         //id和username不能被更新
         user.setId(curLoginUser.getId());
         user.setUsername(curLoginUser.getUsername());
-        ServerResponse response = iUserService.updateUserInformation(user);
+        ServerResponse<User> response = iUserService.updateUserInformation(user);
         if(response.isSuccess()){
             session.setAttribute(Const.CURRENT_USER,response.getData());
         }

@@ -45,7 +45,7 @@ public class ShippingServiceImp implements IShippingService{
     }
 
     @Transactional
-    public ServerResponse delete(Integer userId, Integer shippingId) {
+    public ServerResponse<String> delete(Integer userId, Integer shippingId) {
         if (shippingId == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
@@ -58,7 +58,7 @@ public class ShippingServiceImp implements IShippingService{
     }
 
     @Transactional
-    public ServerResponse update(Integer userId, Shipping shipping) {
+    public ServerResponse<String> update(Integer userId, Shipping shipping) {
         if (shipping == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());

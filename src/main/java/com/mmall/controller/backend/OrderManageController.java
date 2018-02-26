@@ -1,11 +1,14 @@
 package com.mmall.controller.backend;
 
+import com.github.pagehelper.PageInfo;
 import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IOrderService;
 import com.mmall.service.IUserService;
+import com.mmall.vo.OrderVO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +32,7 @@ public class OrderManageController {
 
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse getOrderList(HttpSession session,
+    public ServerResponse<PageInfo<OrderVO>> getOrderList(HttpSession session,
                                        @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
                                        @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
 
@@ -49,7 +52,7 @@ public class OrderManageController {
 
     @RequestMapping("detail.do")
     @ResponseBody
-    public ServerResponse getDetail(HttpSession session, @RequestParam("orderNo") Long orderNo) {
+    public ServerResponse<OrderVO> getDetail(HttpSession session, @RequestParam("orderNo") Long orderNo) {
         User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
         if (curLoginUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
@@ -65,7 +68,7 @@ public class OrderManageController {
 
     @RequestMapping("search.do")
     @ResponseBody
-    public ServerResponse orderSearch(HttpSession session, @RequestParam("orderNo") Long orderNo,
+    public ServerResponse<PageInfo<OrderVO>> orderSearch(HttpSession session, @RequestParam("orderNo") Long orderNo,
                                       @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
                                       @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
         User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
