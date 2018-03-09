@@ -18,6 +18,13 @@ public class Const {
 
     public static final String LIMIT_NUM_SUCCESS = "LIMIT_NUM_SUCCESS";
 
+    public interface RedisCacheExTime{
+        /**
+         * Redis缓存有效时间，设置为30分钟
+         */
+        int REDIS_SESSION_EXTIME = 60 * 30;
+    }
+
     /**
      * 用户类型
      */
@@ -27,7 +34,7 @@ public class Const {
         private int userType;
         private String desc;
 
-        private RegRole(int userType,String desc){
+        RegRole(int userType,String desc){
             this.userType = userType;
             this.desc = desc;
         }
@@ -55,7 +62,7 @@ public class Const {
         private String value;
         private int code;
 
-        private ProductStatusEnum(int code, String value){
+        ProductStatusEnum(int code, String value){
             this.value = value;
             this.code = code;
         }
@@ -76,7 +83,7 @@ public class Const {
         CHECKED(1, "选中状态"),
         UNCHECKED(0, "非选中状态");
 
-        private CartStaus(int code, String desc){
+        CartStaus(int code, String desc){
             this.code = code;
             this.desc = desc;
         }
@@ -104,7 +111,7 @@ public class Const {
         ORDER_SUCCESS(50, "订单完成"),
         ORDER_CLOSED(60, "订单关闭");
 
-        private OrderStatusEnum(int code, String value) {
+        OrderStatusEnum(int code, String value) {
             this.code = code;
             this.value = value;
         }
@@ -138,13 +145,13 @@ public class Const {
         String RESPONSE_FAILED = "failed";
     }
 
-    /*
+    /**
     支付平台枚举
      */
     public enum PayPlatformEnum{
        ALIPAY(1,"支付宝"),;
 
-        private PayPlatformEnum(int code, String value) {
+        PayPlatformEnum(int code, String value) {
             this.code = code;
             this.value = value;
         }
@@ -167,7 +174,7 @@ public class Const {
     public enum PaymentTypeEnum{
         ONLINE(1,"在线支付"),;
 
-        private PaymentTypeEnum(int code, String value) {
+        PaymentTypeEnum(int code, String value) {
             this.code = code;
             this.value = value;
         }

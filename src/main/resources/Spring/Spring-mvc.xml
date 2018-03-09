@@ -42,9 +42,7 @@
     </mvc:annotation-driven>
 
     <bean id="fastJsonConfig" class="com.alibaba.fastjson.support.config.FastJsonConfig">
-        <!--
-        <property name="charset" value="utf-8"/>
-        -->
+
     </bean>
 
 

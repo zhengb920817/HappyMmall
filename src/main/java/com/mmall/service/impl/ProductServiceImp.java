@@ -16,6 +16,7 @@ import com.mmall.util.DateTimeUtil;
 import com.mmall.util.PropertiesUtils;
 import com.mmall.vo.ProductDetailVo;
 import com.mmall.vo.ProductListVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * Created by zhengb on 2018-02-03.
  */
+@Slf4j
 @Service("iProductService'")
 public class ProductServiceImp implements IProdcutService {
 

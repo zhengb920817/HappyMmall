@@ -4,7 +4,11 @@ import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
+import com.mmall.service.IRedisPoolService;
 import com.mmall.service.IShopCartService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.FastJsonUtil;
+import com.mmall.util.RedisPoolUtil;
 import com.mmall.vo.CartVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by zhengb on 2018-02-07.
@@ -24,60 +28,75 @@ public class ShopCartController {
     @Autowired
     private IShopCartService iShippingCartService;
 
+    @Autowired
+    private IRedisPoolService iRedisPoolService;
+
     @RequestMapping(value = "add.do")
     @ResponseBody
-    public ServerResponse<CartVO> add(HttpSession session,
+    public ServerResponse<CartVO> add(HttpServletRequest servletRequest,
                                       @RequestParam("productId") Integer productId,
                                       @RequestParam("count") Integer count) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
-        return iShippingCartService.add(user.getId(), productId, count);
+        return iShippingCartService.add(currentUser.getId(), productId, count);
     }
 
     @RequestMapping(value = "update.do")
     @ResponseBody
-    public ServerResponse<CartVO> update(HttpSession session,
+    public ServerResponse<CartVO> update(HttpServletRequest servletRequest,
                                          @RequestParam("productId") Integer productId,
                                          @RequestParam("count") Integer count) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
-        return iShippingCartService.update(user.getId(), productId, count);
+        return iShippingCartService.update(currentUser.getId(), productId, count);
     }
 
     @RequestMapping(value = "delete_product.do")
     @ResponseBody
-    public ServerResponse<CartVO> deleteProduct(HttpSession session,
+    public ServerResponse<CartVO> deleteProduct(HttpServletRequest servletRequest,
                                          @RequestParam("productIds") String productIds) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.deleteProduct(user.getId(), productIds);
+        return iShippingCartService.deleteProduct(currentUser.getId(), productIds);
 
     }
 
     @RequestMapping(value = "list.do")
     @ResponseBody
-    public ServerResponse<CartVO> getList(HttpSession session) {
+    public ServerResponse<CartVO> getList(HttpServletRequest servletRequest) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.getList(user.getId());
+        return iShippingCartService.getList(currentUser.getId());
     }
 
     /**
@@ -87,71 +106,87 @@ public class ShopCartController {
      */
     @RequestMapping(value = "select_all.do")
     @ResponseBody
-    public ServerResponse<CartVO> selectAll(HttpSession session) {
+    public ServerResponse<CartVO> selectAll(HttpServletRequest servletRequest) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.selectAllorUnSelect(user.getId(), null, Const.CartStaus.CHECKED.getCode());
+        return iShippingCartService.selectAllorUnSelect(currentUser.getId(),
+                null, Const.CartStaus.CHECKED.getCode());
     }
 
     @RequestMapping(value = "un_select_all.do")
     @ResponseBody
-    public ServerResponse<CartVO> unSelectAll(HttpSession session) {
+    public ServerResponse<CartVO> unSelectAll(HttpServletRequest servletRequest) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.selectAllorUnSelect(user.getId(), null, Const.CartStaus.UNCHECKED.getCode());
+        return iShippingCartService.selectAllorUnSelect(currentUser.getId(), null,
+                Const.CartStaus.UNCHECKED.getCode());
     }
 
     @RequestMapping(value = "select.do")
     @ResponseBody
-    public ServerResponse<CartVO> selectProduct(HttpSession session,
+    public ServerResponse<CartVO> selectProduct(HttpServletRequest servletRequest,
                                                     @RequestParam("productId") Integer productId) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.selectAllorUnSelect(user.getId(), productId,
+        return iShippingCartService.selectAllorUnSelect(currentUser.getId(), productId,
                 Const.CartStaus.CHECKED.getCode());
     }
 
     @RequestMapping(value = "un_select.do")
     @ResponseBody
-    public ServerResponse<CartVO> unSelectProduct(HttpSession session,
+    public ServerResponse<CartVO> unSelectProduct(HttpServletRequest servletRequest,
                                                 @RequestParam("productId") Integer productId) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.selectAllorUnSelect(user.getId(), productId,
+        return iShippingCartService.selectAllorUnSelect(currentUser.getId(), productId,
                     Const.CartStaus.UNCHECKED.getCode());
     }
 
     @RequestMapping(value = "get_cart_product_count.do")
     @ResponseBody
-    public ServerResponse<Integer> getCartProductCount(HttpSession session) {
+    public ServerResponse<Integer> getCartProductCount(HttpServletRequest servletRequest) {
 
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iShippingCartService.getCartProductCount(user.getId());
+        return iShippingCartService.getCartProductCount(currentUser.getId());
     }
 
 

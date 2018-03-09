@@ -2,17 +2,18 @@ package com.mmall.controller.backend;
 
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Maps;
-import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.Product;
 import com.mmall.pojo.User;
 import com.mmall.service.IFileService;
 import com.mmall.service.IProdcutService;
+import com.mmall.service.IRedisPoolService;
 import com.mmall.service.IUserService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.FastJsonUtil;
 import com.mmall.util.PropertiesUtils;
 import com.mmall.vo.ProductListVO;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 /**
@@ -43,17 +43,19 @@ public class ProductManageController {
 	@Autowired
 	private IFileService iFileService;
 
+	@Autowired
+	private IRedisPoolService iRedisPoolService;
+
 	@RequestMapping(value = "save.do")
 	@ResponseBody
-	public ServerResponse<String> productSave(HttpSession httpSession, Product product) {
+	public ServerResponse<String> productSave(HttpServletRequest servletRequest, Product product) {
 
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
-		if (curLoginUser == null) {
-			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
-		}
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
 
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
 		} else {
 			// 添加产品逻辑
@@ -63,15 +65,18 @@ public class ProductManageController {
 
 	@RequestMapping(value = "set_sale_status.do")
 	@ResponseBody
-	public ServerResponse<String> setSaleStatus(HttpSession httpSession, @RequestParam("productId") Integer productId,
-			@RequestParam("status") Integer status) {
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
-		if (curLoginUser == null) {
+	public ServerResponse<String> setSaleStatus(HttpServletRequest servletRequest,
+												@RequestParam("productId") Integer productId,
+												@RequestParam("status") Integer status) {
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+		if (currentUser == null) {
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
 
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
 		} else {
 			/*
@@ -83,14 +88,17 @@ public class ProductManageController {
 
 	@RequestMapping(value = "detail.do")
 	@ResponseBody
-	public ServerResponse getDetail(HttpSession httpSession, @RequestParam("productId") Integer productId) {
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
-		if (curLoginUser == null) {
+	public ServerResponse getDetail(HttpServletRequest servletRequest,
+									@RequestParam("productId") Integer productId) {
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+		if (currentUser == null) {
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
 
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
 		} else {
 			return iProdcutService.manageProductDetail(productId);
@@ -99,16 +107,19 @@ public class ProductManageController {
 
 	@RequestMapping(value = "list.do")
 	@ResponseBody
-	public ServerResponse<PageInfo<ProductListVO>> getList(HttpSession httpSession,
+	public ServerResponse<PageInfo<ProductListVO>> getList(HttpServletRequest servletRequest,
 			@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
 			@RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
-		if (curLoginUser == null) {
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+		if (currentUser == null) {
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
 
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
 		} else {
 			return iProdcutService.getProductList(pageNum, pageSize);
@@ -117,17 +128,20 @@ public class ProductManageController {
 
 	@RequestMapping(value = "search.do")
 	@ResponseBody
-	public ServerResponse<PageInfo<ProductListVO>> productSearch(HttpSession httpSession,
+	public ServerResponse<PageInfo<ProductListVO>> productSearch(HttpServletRequest servletRequest,
 			@RequestParam("productName") String productName, @RequestParam("productId") Integer productId,
 			@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
 			@RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
-		if (curLoginUser == null) {
+
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+		if (currentUser == null) {
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
 
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
 		} else {
 			return iProdcutService.searchProduct(productId, productName, pageNum, pageSize);
@@ -141,12 +155,14 @@ public class ProductManageController {
 	@RequestMapping(value = "upload.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse<Map<String, String>> upload(
-			@RequestParam(value = "upload_file", required = false) MultipartFile file, HttpSession httpSession,
-			HttpServletRequest request) {
+			@RequestParam(value = "upload_file", required = false) MultipartFile file,
+			HttpServletRequest servletRequest) {
 
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
 		}
 
@@ -154,7 +170,7 @@ public class ProductManageController {
 			return ServerResponse.createByErrorMessage("文件大小为0，无效文件");
 		}
 
-		String path = request.getSession().getServletContext().getRealPath("upload");
+		String path = servletRequest.getSession().getServletContext().getRealPath("upload");
 		String targetFileName = iFileService.uploadToFtpServer(file, path);
 		String url = getImageTargetUrl(targetFileName);
 		Map<String, String> fileMap = Maps.newHashMap();
@@ -166,12 +182,15 @@ public class ProductManageController {
 	@RequestMapping(value = "richtext_img_upload.do", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> richTextImageUpload(
-			@RequestParam(value = "upload_file", required = false) MultipartFile file, HttpSession httpSession,
-			HttpServletRequest request, HttpServletResponse response) {
+			@RequestParam(value = "upload_file", required = false) MultipartFile file,
+			HttpServletRequest servletRequest, HttpServletResponse response) {
 		Map<String, Object> resultMap = Maps.newHashMap();
-		User curLoginUser = (User) httpSession.getAttribute(Const.CURRENT_USER);
+		String loginToken = CookieUtil.readLoginToken(servletRequest);
+		String userJsonStr = iRedisPoolService.get(loginToken);
+		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
 		// 非管理员
-		if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
 			resultMap.put("success", false);
 			resultMap.put("msg", "请登录管理员操作");
 			return resultMap;
@@ -183,7 +202,7 @@ public class ProductManageController {
 			return resultMap;
 		}
 
-		String path = request.getSession().getServletContext().getRealPath("upload");
+		String path = servletRequest.getSession().getServletContext().getRealPath("upload");
 		String targetFileName = iFileService.uploadToFtpServer(file, path);
 		if (StringUtils.isBlank(targetFileName)) {
 			resultMap.put("success", false);

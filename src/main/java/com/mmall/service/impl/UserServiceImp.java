@@ -2,9 +2,9 @@ package com.mmall.service.impl;
 
 import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
-import com.mmall.common.TokenCache;
 import com.mmall.dao.UserMapper;
 import com.mmall.pojo.User;
+import com.mmall.service.ITokenCacheService;
 import com.mmall.service.IUserService;
 import com.mmall.util.MD5Util;
 import org.apache.commons.lang.StringUtils;
@@ -24,21 +24,17 @@ public class UserServiceImp implements IUserService{
     @Autowired
     private UserMapper userMapper;
 
-    /*
-    从TokenCache中根据用户名获取token值
-     */
-    private String getTokenFromTokenCache(String userName) {
-        return TokenCache.getKey(TokenCache.TOKEN_PREFIX + userName);
+    @Autowired
+    private ITokenCacheService iTokenCacheService;
+
+    private void setTokenToCache(String username, String value){
+        iTokenCacheService.setTokenValue(username,value);
     }
 
-    /*
-    写入用户token值到TokenCache中
-     */
-    private void setTokenValueToTokenCache(String username, String value) {
-        TokenCache.setKey(TokenCache.TOKEN_PREFIX + username, value);
+    private String getTokenCache(String username){
+        return iTokenCacheService.getTokenValue(username);
     }
-
-    /*
+    /**
     获取加密后的密码
      */
     private String getDecrptedPassword(final String password){
@@ -67,6 +63,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> registerUser(User user){
         //校验用户名
         ServerResponse<String> validResponse = this.checkValid(user.getUsername(),Const.USERNAME);
@@ -98,6 +95,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> checkValid(String str,String  type){
         int resultCount = 0;
         if(StringUtils.isNotBlank(str)){
@@ -122,6 +120,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> forgeGetQustion(@RequestParam("username") String username){
        ServerResponse<String> response = this.checkValid(username, Const.USERNAME);
        if(response.isSuccess()){
@@ -140,13 +139,13 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> checkForgetQuestionAnswer(String username,String question,String answer){
         int resultCount = userMapper.checkAnswer(username,question,answer);
         if(resultCount > 0){
             //答案正确
             String token = UUID.randomUUID().toString();
-            //TokenCache.setKey("token_" + username,token);
-            setTokenValueToTokenCache(username, token);
+            setTokenToCache(username, token);
             return ServerResponse.createBySuccess(token);
         }
 
@@ -154,6 +153,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> forgetResetPassword(String username, String passwordNew,
                                                         String forgetToken){
         if(StringUtils.isBlank(forgetToken)){
@@ -165,7 +165,7 @@ public class UserServiceImp implements IUserService{
             return ServerResponse.createByErrorMessage("用户不存在");
         }
 
-        String token = getTokenFromTokenCache(username);
+        String token = getTokenCache(username);
 
         if(StringUtils.equals(token,forgetToken)){
             String newPassword = getDecrptedPassword(passwordNew);
@@ -181,6 +181,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> resetPassword(String passwordOld,String passwordNew,User user){
         int resultCount = userMapper.checkPassword(user.getId(),getDecrptedPassword(passwordOld));
         if(resultCount <= 0){
@@ -195,6 +196,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<User> updateUserInformation(User user){
 
         //username不能被更新
@@ -221,6 +223,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<User> getUserInformation(Integer userId){
         User user = userMapper.selectByPrimaryKey(userId);
         if(user == null){
@@ -232,6 +235,7 @@ public class UserServiceImp implements IUserService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> registerAdmin(User user){
         ServerResponse<String> response = this.checkValid(user.getUsername(),Const.USERNAME);
         if(!response.isSuccess()){
@@ -254,10 +258,11 @@ public class UserServiceImp implements IUserService{
 
     }
 
-    /*
+    /**
     校验是否管理员
      */
     @Transactional
+    @Override
     public ServerResponse checkIsAdmin(User user){
         if ( user != null && user.getRole().equals(Const.RegRole.ADMIN.getUserType())) {
             return ServerResponse.createBySuccess();

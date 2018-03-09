@@ -19,9 +19,8 @@ import com.mmall.common.PayResultEnum;
 import com.mmall.pojo.OrderItem;
 import com.mmall.service.IPayService;
 import com.mmall.util.BigDecimalUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,15 +30,24 @@ import java.util.List;
  * Created by zhengb on 2018-02-11.
  */
 @Service("iPayServce")
+@Slf4j
+/**
+ * 支付宝支付服务实现类
+ */
 public class PayServiceImp implements IPayService {
-    private static final Logger logger = LoggerFactory.getLogger(PayServiceImp.class);
-    // 支付宝当面付2.0服务
+
+    /**支付宝当面付2.0服务
+     */
     private static AlipayTradeService tradeService;
 
-    // 支付宝当面付2.0服务（集成了交易保障接口逻辑）
+    /**
+     * 支付宝当面付2.0服务（集成了交易保障接口逻辑）
+     */
     private static AlipayTradeService tradeWithHBService;
 
-    // 支付宝交易保障接口服务，供测试接口api使用，请先阅读readme.txt
+    /**
+     * 支付宝交易保障接口服务，供测试接口api使用，请先阅读readme.txt
+     */
     private static AlipayMonitorService monitorService;
 
     static {
@@ -61,9 +69,9 @@ public class PayServiceImp implements IPayService {
 
     private String dumpResponse(AlipayResponse response) {
         if (response != null) {
-            logger.info(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
+            log.info(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
             if (StringUtils.isNotEmpty(response.getSubCode())) {
-                logger.info(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
+                log.info(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
                         response.getSubMsg()));
             }
 
@@ -72,7 +80,7 @@ public class PayServiceImp implements IPayService {
         return null;
     }
 
-    /*
+    /**
     处理生成支付二维码返回结果
      */
     private PayResult<PayPrecreateResponse> getPayResult(AlipayF2FPrecreateResult result) {
@@ -100,6 +108,7 @@ public class PayServiceImp implements IPayService {
      * @param aliPayInfo
      * @return 支付结果信息
      */
+    @Override
     public PayResult<PayPrecreateResponse> trade_precreate(AliPayInfo aliPayInfo) {
 
         // (必填) 商户网站订单系统中唯一订单号，64个字符以内，只能包含字母、数字、下划线，
@@ -155,7 +164,8 @@ public class PayServiceImp implements IPayService {
                 .setUndiscountableAmount(undiscountableAmount).setSellerId(sellerId).setBody(body)
                 .setOperatorId(operatorId).setStoreId(storeId).setExtendParams(extendParams)
                 .setTimeoutExpress(timeoutExpress)
-                .setNotifyUrl(aliPayInfo.getCallbackUrl())//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
+                //支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
+                .setNotifyUrl(aliPayInfo.getCallbackUrl())
                 .setGoodsDetailList(goodsDetailList);
 
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);

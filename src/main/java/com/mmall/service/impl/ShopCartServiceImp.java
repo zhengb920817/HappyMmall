@@ -13,6 +13,7 @@ import com.mmall.util.BigDecimalUtil;
 import com.mmall.util.PropertiesUtils;
 import com.mmall.vo.CartProductVO;
 import com.mmall.vo.CartVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ import java.util.List;
  * 购物车服务
  */
 @Service("IShopCartService")
+@Slf4j
 public class ShopCartServiceImp implements IShopCartService {
 
     @Autowired

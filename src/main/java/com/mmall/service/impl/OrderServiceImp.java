@@ -20,8 +20,7 @@ import com.mmall.vo.OrderItemVO;
 import com.mmall.vo.OrderProductVO;
 import com.mmall.vo.OrderVO;
 import com.mmall.vo.ShippingVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +34,8 @@ import java.util.*;
  * Created by zhengb on 2018-02-10.
  */
 @Service("iOrderService")
+@Slf4j
 public class OrderServiceImp implements IOrderService{
-
-    private Logger logger = LoggerFactory.getLogger(OrderServiceImp.class);
 
     @Autowired
     private OrderMapper orderMapper;
@@ -60,7 +58,11 @@ public class OrderServiceImp implements IOrderService{
     @Autowired
     private ShippingMapper shippingMapper;
 
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
+    /**
+     * 支付接口
+     */
     public ServerResponse<Map<String,String>> pay(Long orderNo, Integer userId, String savePath) {
 
         Map<String, String> resultMap = new HashMap<>();
@@ -113,7 +115,7 @@ public class OrderServiceImp implements IOrderService{
             //上传至ftp服务器
             FtpUtil.uploadFiles(Lists.newArrayList(targetFile));
 
-            logger.info("qrPath:" + qrPath);
+            log.info("qrPath:" + qrPath);
 
             String qrUrl = PropertiesUtils.getPropertyValue("ftp.server.http.prefix") + targetFile.getName();
 
@@ -130,7 +132,8 @@ public class OrderServiceImp implements IOrderService{
      * @param params
      * @return
      */
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
     public ServerResponse<String> alipayCallBack(Map<String, String> params){
         try {
             boolean alipaySiganaturCheck =
@@ -140,7 +143,7 @@ public class OrderServiceImp implements IOrderService{
                 return ServerResponse.createByErrorMessage("非法请求，验证不通过");
             }
         } catch (AlipayApiException e) {
-            logger.error("验证支付宝回调异常" + e);
+            log.error("验证支付宝回调异常" + e);
         }
 
         //校验各种参数
@@ -177,7 +180,8 @@ public class OrderServiceImp implements IOrderService{
         return ServerResponse.createBySuccess();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
     public ServerResponse<Boolean> queryOrderPayStatus(Integer userId, Long orderNo) {
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order == null) {
@@ -191,6 +195,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<OrderVO> createOrder(Integer userId, Integer shippingId) {
         List<Cart> cartList = cartMapper.selectCheckedCaryByUserId(userId);
 
@@ -398,14 +403,6 @@ public class OrderServiceImp implements IOrderService{
             return ServerResponse.createByErrorMessage("已付款，无法取消订单");
         }
 
-        /*
-        Order updateOrder = new Order();
-        updateOrder.setUserId(userId);
-        updateOrder.setOrderNo(orderNo);
-        updateOrder.setStatus(Const.OrderStatusEnum.Cancel.getCode());
-        updateOrder.setId(order.getId());
-        int rowCount = orderMapper.updateByPrimaryKeySelective(updateOrder);
-         */
         int rowCount = orderMapper.updateOrderStatusByOrderNoAndUserId(order.getUserId(),
                 order.getOrderNo(), Const.OrderStatusEnum.Cancel.getCode());
         if (rowCount > 0) {
@@ -415,6 +412,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<OrderProductVO> getOrderCarProduct(Integer userId) {
 
         OrderProductVO orderProductVO = new OrderProductVO();
@@ -444,6 +442,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<OrderVO> getOderDetail(Integer userId, Long orderNo) {
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order != null) {
@@ -456,6 +455,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<PageInfo<OrderVO>> getOrderList(Integer userId, int pageNum, int pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         List<Order> orderList = orderMapper.selectByUserId(userId);
@@ -486,6 +486,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<PageInfo<OrderVO>> manageList(int pageNum, int pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         List<Order> allOrderList = orderMapper.selectAllOrder();
@@ -496,6 +497,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<OrderVO> manageDetail(Long orderNo) {
         Order order = orderMapper.selectByOrderNo(orderNo);
         if (order != null) {
@@ -508,6 +510,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<PageInfo<OrderVO>> manageSearch(Long orderNo,int pageSize,int pageNum) {
         PageHelper.startPage(pageNum, pageSize);
         Order order = orderMapper.selectByOrderNo(orderNo);
@@ -524,6 +527,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> manageSendGoods(Long orderNo) {
         Order order = orderMapper.selectByOrderNo(orderNo);
         if (order != null) {

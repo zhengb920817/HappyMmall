@@ -1,21 +1,22 @@
 package com.mmall.controller.backend;
 
 import com.github.pagehelper.PageInfo;
-import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IOrderService;
+import com.mmall.service.IRedisPoolService;
 import com.mmall.service.IUserService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.FastJsonUtil;
 import com.mmall.vo.OrderVO;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by zhengb on 2018-02-19.
@@ -30,20 +31,26 @@ public class OrderManageController {
     @Autowired
     private IUserService iUserService;
 
+    @Autowired
+    private IRedisPoolService iRedisPoolService;
+
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse<PageInfo<OrderVO>> getOrderList(HttpSession session,
+    public ServerResponse<PageInfo<OrderVO>> getOrderList(HttpServletRequest servletRequest,
                                        @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
                                        @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
 
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     "用户未登录");
         }
 
         //非管理员
-        if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+        if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
             return ServerResponse.createByErrorMessage("非管理员,无权限操作");
         } else {
             return iOrderService.manageList(pageNum, pageSize);
@@ -52,14 +59,17 @@ public class OrderManageController {
 
     @RequestMapping("detail.do")
     @ResponseBody
-    public ServerResponse<OrderVO> getDetail(HttpSession session, @RequestParam("orderNo") Long orderNo) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<OrderVO> getDetail(HttpServletRequest servletRequest, @RequestParam("orderNo") Long orderNo) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     "用户未登录");
         }
         //非管理员
-        if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+        if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
             return ServerResponse.createByErrorMessage("非管理员,无权限操作");
         } else {
             return iOrderService.manageDetail(orderNo);
@@ -68,16 +78,19 @@ public class OrderManageController {
 
     @RequestMapping("search.do")
     @ResponseBody
-    public ServerResponse<PageInfo<OrderVO>> orderSearch(HttpSession session, @RequestParam("orderNo") Long orderNo,
-                                      @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-                                      @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<PageInfo<OrderVO>> orderSearch(HttpServletRequest servletRequest, @RequestParam("orderNo") Long orderNo,
+                                                         @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+                                                         @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     "用户未登录");
         }
         //非管理员
-        if (!iUserService.checkIsAdmin(curLoginUser).isSuccess()) {
+        if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
             return ServerResponse.createByErrorMessage("非管理员,无权限操作");
         } else {
             return iOrderService.manageSearch(orderNo, pageSize, pageNum);

@@ -6,6 +6,9 @@ import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IOrderService;
+import com.mmall.service.IRedisPoolService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.FastJsonUtil;
 import com.mmall.vo.OrderProductVO;
 import com.mmall.vo.OrderVO;
 import org.slf4j.Logger;
@@ -17,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,26 +35,34 @@ public class OrderController {
     @Autowired
     private IOrderService iOrderService;
 
+    @Autowired
+    private IRedisPoolService iRedisPoolService;
+
     @RequestMapping(value = "pay.do")
     @ResponseBody
     /**
      * 支付操作
      */
-    public ServerResponse<Map<String,String>> pay(HttpSession session, HttpServletRequest servletRequest,
+    public ServerResponse<Map<String,String>> pay(HttpServletRequest servletRequest,
                                                    @RequestParam("orderNo") Long orderNo) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
         String uploadPath = servletRequest.getServletContext().getRealPath("upload");
 
-        return iOrderService.pay(orderNo, curLoginUser.getId(), uploadPath);
+        return iOrderService.pay(orderNo, currentUser.getId(), uploadPath);
     }
 
     @RequestMapping(value = "alipay_callback.do")
     @ResponseBody
+    /**
+     * 支付宝回调
+     */
     public String alipayCallBack(HttpServletRequest servletRequest) {
         Map<String, String[]> requestMap = servletRequest.getParameterMap();
         Map<String, String> params = new HashMap<>();
@@ -69,33 +79,38 @@ public class OrderController {
 
             params.put(paramKey, valueStr);
         }
-        /*
-        支付宝异步回调通知参数https://docs.open.alipay.com/59/103666
+        /**
+        支付宝异步回调通知参数<a>https://docs.open.alipay.com/59/103666</a>
         */
         logger.info("支付宝回调：sign:{},trade_status:{},参数:{}",
                 params.get("sign"), params.get("trade_status"), params.toString());
 
         //验证回调的正确性
-        if (params.containsKey("sign_type"))
+        if (params.containsKey("sign_type")) {
             params.remove("sign_type");
+        }
+
 
         ServerResponse<String> response = iOrderService.alipayCallBack(params);
-        if (response.isSuccess())
+        if (response.isSuccess()){
             return Const.AliPayCallBack.RESPONSE_SUCCESS;
+        }
 
         return Const.AliPayCallBack.RESPONSE_FAILED;
     }
 
     @RequestMapping(value = "query_order_pay_status.do")
     @ResponseBody
-    public ServerResponse<Boolean> queryOrderPayStatus(HttpSession session, Long orderNo) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<Boolean> queryOrderPayStatus(HttpServletRequest servletRequest, Long orderNo) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        ServerResponse<Boolean> response = iOrderService.queryOrderPayStatus(curLoginUser.getId(), orderNo);
+        ServerResponse<Boolean> response = iOrderService.queryOrderPayStatus(currentUser.getId(), orderNo);
         if(response.isSuccess()){
             return ServerResponse.createBySuccess(Boolean.TRUE);
         }
@@ -104,73 +119,90 @@ public class OrderController {
 
     @RequestMapping(value = "create.do")
     @ResponseBody
-    public ServerResponse<OrderVO> create(HttpSession session, @RequestParam("shippingId") Integer shippingId) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<OrderVO> create(HttpServletRequest servletRequest,
+                                          @RequestParam("shippingId") Integer shippingId) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iOrderService.createOrder(curLoginUser.getId(), shippingId);
+        return iOrderService.createOrder(currentUser.getId(), shippingId);
     }
 
     @RequestMapping(value = "cancel.do")
     @ResponseBody
-    public ServerResponse<String> cancel(HttpSession session, @RequestParam("orderNo") Long orderNo) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<String> cancel(HttpServletRequest servletRequest, @RequestParam("orderNo") Long orderNo) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iOrderService.cancelOrder(curLoginUser.getId(), orderNo);
+        return iOrderService.cancelOrder(currentUser.getId(), orderNo);
 
     }
 
     @RequestMapping(value = "get_order_cart_product.do")
     @ResponseBody
-    public ServerResponse<OrderProductVO> getOrderCartProduct(HttpSession session){
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<OrderProductVO> getOrderCartProduct(HttpServletRequest servletRequest){
+
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iOrderService.getOrderCarProduct(curLoginUser.getId());
+        return iOrderService.getOrderCarProduct(currentUser.getId());
     }
 
     @RequestMapping(value = "detail.do")
     @ResponseBody
-    public ServerResponse<OrderVO> getDetail(HttpSession session, @RequestParam("orderNo") Long orderNo) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<OrderVO> getDetail(HttpServletRequest servletRequest,
+                                             @RequestParam("orderNo") Long orderNo) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
 
-        return iOrderService.getOderDetail(curLoginUser.getId(), orderNo);
+        return iOrderService.getOderDetail(currentUser.getId(), orderNo);
     }
 
     @RequestMapping(value = "list.do")
     @ResponseBody
-    public ServerResponse<PageInfo<OrderVO>> getList(HttpSession session,
+    public ServerResponse<PageInfo<OrderVO>> getList(HttpServletRequest servletRequest,
                                            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
                                            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }
 
-        return iOrderService.getOrderList(curLoginUser.getId(), pageNum, pageSize);
+        return iOrderService.getOrderList(currentUser.getId(), pageNum, pageSize);
     }
 
     @RequestMapping(value = "send_goods.do")
     @ResponseBody
-    public ServerResponse<String> sendGoods(HttpSession session, @RequestParam("orderNo") Long orderNo) {
-        User curLoginUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (curLoginUser == null) {
+    public ServerResponse<String> sendGoods(HttpServletRequest servletRequest, @RequestParam("orderNo") Long orderNo) {
+
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
                     ResponseCode.NEED_LOGIN.getDesc());
         }

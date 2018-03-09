@@ -6,9 +6,8 @@ import com.mmall.common.ServerResponse;
 import com.mmall.dao.CategoryMapper;
 import com.mmall.pojo.Category;
 import com.mmall.service.ICategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +20,8 @@ import java.util.Set;
  * Created by zhengb on 2018-02-01.
  */
 @Service("iCategoryService")
+@Slf4j
 public class CategoryServiceImp implements ICategoryService{
-
-    private Logger logger = LoggerFactory.getLogger(CategoryServiceImp.class);
 
     @Autowired
     private CategoryMapper categoryMapper;
@@ -73,15 +71,16 @@ public class CategoryServiceImp implements ICategoryService{
         List<Category> categoryList = categoryMapper.selectCategoryChildrenByParentId(categoryId);
 
         if(CollectionUtils.isEmpty(categoryList)){
-            logger.info("未找到当前分类的子分类");
+            log.info("未找到当前分类的子分类");
         }
         return ServerResponse.createBySuccess(categoryList);
     }
 
-    /*
+    /**
     递归查询本节点和子节点孩子的id
      */
     @Transactional
+    @Override
     public ServerResponse<List<Integer>> selectCategoryAndChildrenById(Integer categoryId){
         Set<Category> categorySet = Sets.newConcurrentHashSet();
         findChildCategory(categorySet, categoryId);
@@ -96,7 +95,12 @@ public class CategoryServiceImp implements ICategoryService{
         return ServerResponse.createBySuccess(categoryIdList);
     }
 
-    //递归算法算出子节点
+    /**
+     *
+     * @param categorySet
+     * @param categoryId
+     * @return
+     */
     private Set<Category> findChildCategory(Set<Category> categorySet, Integer categoryId){
         Category category = categoryMapper.selectByPrimaryKey(categoryId);
         if(category != null){

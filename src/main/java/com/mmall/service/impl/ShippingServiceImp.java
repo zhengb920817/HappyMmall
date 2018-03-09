@@ -8,6 +8,7 @@ import com.mmall.common.ServerResponse;
 import com.mmall.dao.ShippingMapper;
 import com.mmall.pojo.Shipping;
 import com.mmall.service.IShippingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 
 @Service("iShippingService")
+@Slf4j
 public class ShippingServiceImp implements IShippingService{
 
     @Autowired
@@ -32,6 +34,7 @@ public class ShippingServiceImp implements IShippingService{
      * @return
      */
     @Transactional
+    @Override
     public ServerResponse<Map<String, Integer>> add(Integer userId, Shipping shipping) {
         Shipping addShipping = shipping;
         shipping.setUserId(userId);
@@ -45,6 +48,7 @@ public class ShippingServiceImp implements IShippingService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> delete(Integer userId, Integer shippingId) {
         if (shippingId == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
@@ -58,6 +62,7 @@ public class ShippingServiceImp implements IShippingService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> update(Integer userId, Shipping shipping) {
         if (shipping == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
@@ -75,6 +80,7 @@ public class ShippingServiceImp implements IShippingService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<Shipping> select(Integer userId, Integer shippingId){
         if(shippingId == null){
             return ServerResponse.createByErrorMessage("无法查询到该地址");
@@ -84,6 +90,7 @@ public class ShippingServiceImp implements IShippingService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<PageInfo<Shipping>> getList(Integer userId, int pageNum, int pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         List<Shipping> shippingList = shippingMapper.selectListByUserId(userId);
