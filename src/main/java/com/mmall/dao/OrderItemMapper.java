@@ -23,4 +23,6 @@ public interface OrderItemMapper {
     void bacthInsert(@Param("orderItemList") List<OrderItem> orderItemList);
 
     List<OrderItem> getListByOrderNo(Long orderNo);
+
+
 }

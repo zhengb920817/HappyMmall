@@ -7,6 +7,7 @@ import com.mmall.service.IRedisPoolService;
 import com.mmall.service.IUserService;
 import com.mmall.util.CookieUtil;
 import com.mmall.util.FastJsonUtil;
+import com.mmall.util.UuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
+ * @author zhengb
  * Created by zhengb on 2018-01-30.
  */
 @Controller
@@ -28,9 +30,9 @@ public class UserManageController {
     private IUserService iUserService;
 
     @Autowired
-    private IRedisPoolService iRedisPoolService;;
+    private IRedisPoolService iRedisPoolService;
 
-    @RequestMapping(value = "login.do", method = RequestMethod.POST)
+    @RequestMapping(value = "login.do", method = RequestMethod.GET)
     @ResponseBody
     public ServerResponse<User> login(@RequestParam("username") String username,
                                       @RequestParam("password") String password,
@@ -39,9 +41,10 @@ public class UserManageController {
         if (response.isSuccess()) {
             User user = response.getData();
             if (user.getRole() == Const.RegRole.ADMIN.getUserType()) {
-                CookieUtil.writeLoginToken(servletResponse, httpSession.getId());
+                String token = UuidUtil.getUUIDString();
+                CookieUtil.writeLoginToken(servletResponse, token);
                 //存到redis中
-                iRedisPoolService.setex(httpSession.getId(), FastJsonUtil.obj2JsonStr(response.getData()),
+                iRedisPoolService.setex(token, FastJsonUtil.obj2JsonStr(response.getData()),
                         Const.RedisCacheExTime.REDIS_SESSION_EXTIME);
                 return response;
             } else {

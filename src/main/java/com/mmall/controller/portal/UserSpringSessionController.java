@@ -31,11 +31,15 @@ public class UserSpringSessionController {
     public ServerResponse<User> login(@RequestParam("username") String userName,
                                       @RequestParam("password") String password,
                                       HttpSession session) {
+        //测试全局异常
+        //int j = 1 / 0;
         ServerResponse<User> response = iUserService.login(userName, password);
         if (response.isSuccess()) {
             session.setAttribute(Const.CURRENT_USER,response.getData());
         }
+
         return response;
+
     }
 
     /**

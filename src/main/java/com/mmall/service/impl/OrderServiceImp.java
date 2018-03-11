@@ -548,4 +548,28 @@ public class OrderServiceImp implements IOrderService{
         return ServerResponse.createByErrorMessage("订单信息不存在，发货失败");
     }
 
+
+    @Override
+    public void closeOrder(int hour){
+        Date closeDate = org.apache.commons.lang.time.DateUtils.addHours(new Date(),-hour);
+
+        List<Order> closerOrderList = orderMapper.selectOrderStatusByCreateTime(Const.OrderStatusEnum.NO_PAY.getCode(),
+                DateTimeUtil.dateToStr(closeDate));
+
+        for(Order order:closerOrderList){
+            List<OrderItem> orderItemList = orderItemMapper.getListByOrderNo(order.getOrderNo());
+            for(OrderItem orderItem:orderItemList){
+                int stock = productMapper.selectByPrimaryKey(orderItem.getProductId()).getStock();
+                if(stock == 0){
+                    continue;
+                }
+                Product product = new Product();
+                product.setId(orderItem.getProductId());
+                product.setStock(orderItem.getQuantity());
+            }
+
+            orderMapper.closeOrderByOrderId(order.getId());
+            log.info("关闭订单OrderNo:{}",order.getOrderNo());
+        }
+    }
 }

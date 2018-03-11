@@ -28,4 +28,8 @@ public interface OrderMapper {
 
     int updateOrderStatusByOrderNoAndUserId(@Param("userId") Integer userId, @Param("orderNo") Long orderNo,
                                             @Param("status")Integer status);
+
+    List<Order> selectOrderStatusByCreateTime(@Param("status")Integer status,@Param("date")String date );
+
+    int closeOrderByOrderId(Integer orderId);
 }

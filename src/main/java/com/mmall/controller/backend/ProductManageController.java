@@ -2,16 +2,12 @@ package com.mmall.controller.backend;
 
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Maps;
-import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.Product;
-import com.mmall.pojo.User;
 import com.mmall.service.IFileService;
 import com.mmall.service.IProdcutService;
 import com.mmall.service.IRedisPoolService;
 import com.mmall.service.IUserService;
-import com.mmall.util.CookieUtil;
-import com.mmall.util.FastJsonUtil;
 import com.mmall.util.PropertiesUtils;
 import com.mmall.vo.ProductListVO;
 import org.apache.commons.lang.StringUtils;
@@ -50,17 +46,19 @@ public class ProductManageController {
 	@ResponseBody
 	public ServerResponse<String> productSave(HttpServletRequest servletRequest, Product product) {
 
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//		String loginToken = CookieUtil.readLoginToken(servletRequest);
+//		String userJsonStr = iRedisPoolService.get(loginToken);
+//		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//
+//		// 非管理员
+//		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
+//			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
+//		} else {
+//			// 添加产品逻辑
+//			return iProdcutService.saveOrUpdateProduct(product);
+//		}
 
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-		} else {
-			// 添加产品逻辑
-			return iProdcutService.saveOrUpdateProduct(product);
-		}
+		return iProdcutService.saveOrUpdateProduct(product);
 	}
 
 	@RequestMapping(value = "set_sale_status.do")
@@ -68,41 +66,45 @@ public class ProductManageController {
 	public ServerResponse<String> setSaleStatus(HttpServletRequest servletRequest,
 												@RequestParam("productId") Integer productId,
 												@RequestParam("status") Integer status) {
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-		if (currentUser == null) {
-			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
-		}
+//		String loginToken = CookieUtil.readLoginToken(servletRequest);
+//		String userJsonStr = iRedisPoolService.get(loginToken);
+//		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//		if (currentUser == null) {
+//			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+//		}
+//
+//		// 非管理员
+//		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
+//			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
+//		} else {
+//			/*
+//			 * 更新商品状态
+//			 */
+//			return iProdcutService.setStatus(productId, status);
+//		}
 
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-		} else {
-			/*
-			 * 更新商品状态
-			 */
-			return iProdcutService.setStatus(productId, status);
-		}
+		return iProdcutService.setStatus(productId, status);
 	}
 
 	@RequestMapping(value = "detail.do")
 	@ResponseBody
 	public ServerResponse getDetail(HttpServletRequest servletRequest,
 									@RequestParam("productId") Integer productId) {
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-		if (currentUser == null) {
-			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
-		}
+//		String loginToken = CookieUtil.readLoginToken(servletRequest);
+//		String userJsonStr = iRedisPoolService.get(loginToken);
+//		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//		if (currentUser == null) {
+//			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+//		}
+//
+//		// 非管理员
+//		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
+//			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
+//		} else {
+//			return iProdcutService.manageProductDetail(productId);
+//		}
 
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-		} else {
-			return iProdcutService.manageProductDetail(productId);
-		}
+		return iProdcutService.manageProductDetail(productId);
 	}
 
 	@RequestMapping(value = "list.do")
@@ -110,20 +112,22 @@ public class ProductManageController {
 	public ServerResponse<PageInfo<ProductListVO>> getList(HttpServletRequest servletRequest,
 			@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
 			@RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//		String loginToken = CookieUtil.readLoginToken(servletRequest);
+//		String userJsonStr = iRedisPoolService.get(loginToken);
+//		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//
+//		if (currentUser == null) {
+//			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+//		}
+//
+//		// 非管理员
+//		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
+//			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
+//		} else {
+//			return iProdcutService.getProductList(pageNum, pageSize);
+//		}
 
-		if (currentUser == null) {
-			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
-		}
-
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-		} else {
-			return iProdcutService.getProductList(pageNum, pageSize);
-		}
+		return iProdcutService.getProductList(pageNum, pageSize);
 	}
 
 	@RequestMapping(value = "search.do")
@@ -133,19 +137,21 @@ public class ProductManageController {
 			@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
 			@RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
 
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-		if (currentUser == null) {
-			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
-		}
+//		String loginToken = CookieUtil.readLoginToken(servletRequest);
+//		String userJsonStr = iRedisPoolService.get(loginToken);
+//		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//		if (currentUser == null) {
+//			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+//		}
+//
+//		// 非管理员
+//		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
+//			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
+//		} else {
+//			return iProdcutService.searchProduct(productId, productName, pageNum, pageSize);
+//		}
 
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-		} else {
-			return iProdcutService.searchProduct(productId, productName, pageNum, pageSize);
-		}
+		return iProdcutService.searchProduct(productId, productName, pageNum, pageSize);
 	}
 
 	private String getImageTargetUrl(String fileName) {
@@ -158,13 +164,13 @@ public class ProductManageController {
 			@RequestParam(value = "upload_file", required = false) MultipartFile file,
 			HttpServletRequest servletRequest) {
 
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-		}
+//		String loginToken = CookieUtil.readLoginToken(servletRequest);
+//		String userJsonStr = iRedisPoolService.get(loginToken);
+//		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+//		// 非管理员
+//		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
+//			return ServerResponse.createByErrorMessage("非管理员,无权限操作");
+//		}
 
 		if (file.getSize() <= 0) {
 			return ServerResponse.createByErrorMessage("文件大小为0，无效文件");
@@ -184,17 +190,8 @@ public class ProductManageController {
 	public Map<String, Object> richTextImageUpload(
 			@RequestParam(value = "upload_file", required = false) MultipartFile file,
 			HttpServletRequest servletRequest, HttpServletResponse response) {
-		Map<String, Object> resultMap = Maps.newHashMap();
-		String loginToken = CookieUtil.readLoginToken(servletRequest);
-		String userJsonStr = iRedisPoolService.get(loginToken);
-		User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
 
-		// 非管理员
-		if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-			resultMap.put("success", false);
-			resultMap.put("msg", "请登录管理员操作");
-			return resultMap;
-		}
+		Map<String, Object> resultMap = Maps.newHashMap();
 
 		if (file.getSize() <= 0) {
 			resultMap.put("success", false);

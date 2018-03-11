@@ -8,6 +8,7 @@ import com.mmall.service.IRedisPoolService;
 import com.mmall.service.IUserService;
 import com.mmall.util.CookieUtil;
 import com.mmall.util.FastJsonUtil;
+import com.mmall.util.UuidUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -43,9 +44,11 @@ public class UserController {
                                       @RequestParam("password") String password, HttpSession session) {
         ServerResponse<User> response = iUserService.login(userName, password);
         if (response.isSuccess()) {
-            CookieUtil.writeLoginToken(servletResponse, session.getId());
+            String token = UuidUtil.getUUIDString();
+            //CookieUtil.writeLoginToken(servletResponse, session.getId());
+            CookieUtil.writeLoginToken(servletResponse, token);
             //存到redis中
-            iRedisPoolService.setex(session.getId(), FastJsonUtil.obj2JsonStr(response.getData()),
+            iRedisPoolService.setex(token, FastJsonUtil.obj2JsonStr(response.getData()),
                     Const.RedisCacheExTime.REDIS_SESSION_EXTIME);
         }
         return response;
