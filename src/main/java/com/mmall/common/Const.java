@@ -193,10 +193,16 @@ public class Const {
         public static PaymentTypeEnum codeOf(int code) {
             for (PaymentTypeEnum paymentTypeEnum : values()) {
                 if (paymentTypeEnum.getCode() == code)
+                {
                     return paymentTypeEnum;
+                }
             }
 
             throw new RuntimeException("没有找到支付类型对应的枚举");
         }
+    }
+
+    public interface REDIS_LOCK{
+        String CLOSER_ORDER_TASK_LOCK = "CLOSER_ORDER_TASK_LOCK";
     }
 }

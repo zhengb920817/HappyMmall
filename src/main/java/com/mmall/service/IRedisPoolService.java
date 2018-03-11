@@ -49,4 +49,6 @@ public interface IRedisPoolService {
      * @return
      */
     Long delKey(String key) ;
+
+    Long setnx(String key, String value) ;
 }
