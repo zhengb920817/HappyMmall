@@ -393,6 +393,7 @@ public class OrderServiceImp implements IOrderService{
     }
 
     @Transactional
+    @Override
     public ServerResponse<String> cancelOrder(Integer userId, Long orderNo) {
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order == null) {

@@ -37,7 +37,6 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
             shardedJedis = getShardeJedisPool();
             result = shardedJedis.set(key, value);
         } catch (Exception e) {
-            //log.error("set key:{} value:{} error", key, value, e);
             returnBrokenResource(shardedJedis);
             return result;
         }
@@ -55,7 +54,6 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
             shardedJedis = getShardeJedisPool();
             result = shardedJedis.get(key);
         } catch (Exception e) {
-            //log.error("get key:{} error", key, e);
             returnBrokenResource(shardedJedis);
             return result;
         }
@@ -73,7 +71,6 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
             shardedJedis = getShardeJedisPool();
             result = shardedJedis.setex(key, expireTime, value);
         } catch (Exception e) {
-            //log.error("setex key:{} value:{},expireTime:{} error", key, value, expireTime, e);
             returnBrokenResource(shardedJedis);
             return result;
         }
@@ -92,7 +89,6 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
             shardedJedis = getShardeJedisPool();
             result = shardedJedis.expire(key,expireTime);
         } catch (Exception e) {
-            //log.error("expire key:{}, expireTime:{} error", key, expireTime, e);
             returnBrokenResource(shardedJedis);
             return result;
         }
@@ -110,7 +106,6 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
             shardedJedis = getShardeJedisPool();
             result = shardedJedis.del(key);
         } catch (Exception e) {
-            //log.error("delKey key:{} error", key, e);
             returnBrokenResource(shardedJedis);
             return result;
         }
@@ -128,7 +123,23 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
             shardedJedis = getShardeJedisPool();
             result = shardedJedis.setnx(key,value);
         } catch (Exception e) {
-            //log.error("setnx key:{} value:{} error", key, value, e);
+            returnBrokenResource(shardedJedis);
+            return result;
+        }
+
+        returnResource(shardedJedis);
+        return result;
+    }
+
+    @Override
+    public String getSet(String key, String value) {
+        ShardedJedis shardedJedis = null;
+        String result = null;
+
+        try {
+            shardedJedis = getShardeJedisPool();
+            result = shardedJedis.getSet(key, value);
+        } catch (Exception e) {
             returnBrokenResource(shardedJedis);
             return result;
         }

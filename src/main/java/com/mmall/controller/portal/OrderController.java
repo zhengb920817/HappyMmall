@@ -11,8 +11,7 @@ import com.mmall.util.CookieUtil;
 import com.mmall.util.FastJsonUtil;
 import com.mmall.vo.OrderProductVO;
 import com.mmall.vo.OrderVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,9 +27,10 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("/order/")
+@Slf4j
 public class OrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+    //private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
     private IOrderService iOrderService;
@@ -82,7 +82,7 @@ public class OrderController {
         /**
         支付宝异步回调通知参数<a>https://docs.open.alipay.com/59/103666</a>
         */
-        logger.info("支付宝回调：sign:{},trade_status:{},参数:{}",
+        log.info("支付宝回调：sign:{},trade_status:{},参数:{}",
                 params.get("sign"), params.get("trade_status"), params.toString());
 
         //验证回调的正确性

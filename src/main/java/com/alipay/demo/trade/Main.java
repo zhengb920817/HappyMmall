@@ -94,7 +94,7 @@ public class Main {
         //        main.test_trade_query();
 
         // 测试当面付2.0退货
-        //        main.test_trade_refund();
+               // main.test_trade_refund();
 
         // 测试当面付2.0生成支付二维码
         main.test_trade_precreate();
@@ -327,7 +327,7 @@ public class Main {
         String outTradeNo = "tradepay14817938139942440181";
 
         // (必填) 退款金额，该金额必须小于等于订单的支付金额，单位为元
-        String refundAmount = "0.01";
+        String refundAmount = "0.99";
 
         // (可选，需要支持重复退货时必填) 商户退款请求号，相同支付宝交易号下的不同退款请求号对应同一笔交易的不同退款申请，
         // 对于相同支付宝交易号下多笔相同商户退款请求号的退款交易，支付宝只会进行一次退款
