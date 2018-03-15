@@ -35,22 +35,6 @@ public class OrderManageController {
     public ServerResponse<PageInfo<OrderVO>> getOrderList(HttpServletRequest servletRequest,
                                        @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
                                        @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-//        String loginToken = CookieUtil.readLoginToken(servletRequest);
-//        String userJsonStr = iRedisPoolService.get(loginToken);
-//        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-//
-//        if (currentUser == null) {
-//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
-//                    "用户未登录");
-//        }
-//
-//        //非管理员
-//        if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-//            return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-//        } else {
-//            return iOrderService.manageList(pageNum, pageSize);
-//        }
-
         return iOrderService.manageList(pageNum, pageSize);
     }
 
@@ -58,21 +42,6 @@ public class OrderManageController {
     @ResponseBody
     public ServerResponse<OrderVO> getDetail(HttpServletRequest servletRequest,
                                              @RequestParam("orderNo") Long orderNo) {
-//        String loginToken = CookieUtil.readLoginToken(servletRequest);
-//        String userJsonStr = iRedisPoolService.get(loginToken);
-//        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-//
-//        if (currentUser == null) {
-//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
-//                    "用户未登录");
-//        }
-//        //非管理员
-//        if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-//            return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-//        } else {
-//            return iOrderService.manageDetail(orderNo);
-//        }
-
         return iOrderService.manageDetail(orderNo);
     }
 
@@ -81,21 +50,6 @@ public class OrderManageController {
     public ServerResponse<PageInfo<OrderVO>> orderSearch(HttpServletRequest servletRequest, @RequestParam("orderNo") Long orderNo,
                                                          @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-//        String loginToken = CookieUtil.readLoginToken(servletRequest);
-//        String userJsonStr = iRedisPoolService.get(loginToken);
-//        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
-//
-//        if (currentUser == null) {
-//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
-//                    "用户未登录");
-//        }
-//        //非管理员
-//        if (!iUserService.checkIsAdmin(currentUser).isSuccess()) {
-//            return ServerResponse.createByErrorMessage("非管理员,无权限操作");
-//        } else {
-//            return iOrderService.manageSearch(orderNo, pageSize, pageNum);
-//        }
-
         return iOrderService.manageSearch(orderNo, pageSize, pageNum);
     }
 

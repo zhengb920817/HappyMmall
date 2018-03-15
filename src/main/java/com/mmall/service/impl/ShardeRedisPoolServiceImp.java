@@ -148,4 +148,21 @@ public class ShardeRedisPoolServiceImp implements IRedisPoolService {
         return result;
     }
 
+    @Override
+    public String rpop(String key) {
+        ShardedJedis shardedJedis = null;
+        String result = null;
+
+        try {
+            shardedJedis = getShardeJedisPool();
+            result = shardedJedis.rpop(key);
+        } catch (Exception e) {
+            returnBrokenResource(shardedJedis);
+            return result;
+        }
+
+        returnResource(shardedJedis);
+        return result;
+    }
+
 }

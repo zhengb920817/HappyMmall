@@ -6,9 +6,10 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import java.io.Serializable;
 
 /**
- * Created by zhengb on 2018-01-17.
+ * 保证序列化json的时候，如果是null对象，key也会消失
+ * @author zhengb
+ * @param <T>
  */
-//保证序列化json的时候，如果是null对象，key也会消失
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class ServerResponse<T> implements Serializable{
     private int status;

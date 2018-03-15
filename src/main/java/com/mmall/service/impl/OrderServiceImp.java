@@ -7,11 +7,15 @@ import com.alipay.demo.trade.utils.ZxingUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
-import com.mmall.common.*;
+import com.mmall.common.Const;
+import com.mmall.common.ServerResponse;
+import com.mmall.common.pay.*;
 import com.mmall.dao.*;
 import com.mmall.pojo.*;
 import com.mmall.service.IOrderService;
 import com.mmall.service.IPayService;
+import com.mmall.service.IRedisPoolService;
+import com.mmall.task.AlipayRefundThread;
 import com.mmall.util.BigDecimalUtil;
 import com.mmall.util.DateTimeUtil;
 import com.mmall.util.FtpUtil;
@@ -22,6 +26,7 @@ import com.mmall.vo.OrderVO;
 import com.mmall.vo.ShippingVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -58,6 +63,12 @@ public class OrderServiceImp implements IOrderService{
     @Autowired
     private ShippingMapper shippingMapper;
 
+    @Autowired
+    private IRedisPoolService iRedisPoolService;
+
+    @Autowired
+    private ThreadPoolTaskExecutor tradrThreadPoolTaskExecutor;
+
     @Transactional(rollbackFor = RuntimeException.class)
     @Override
     /**
@@ -65,7 +76,7 @@ public class OrderServiceImp implements IOrderService{
      */
     public ServerResponse<Map<String,String>> pay(Long orderNo, Integer userId, String savePath) {
 
-        Map<String, String> resultMap = new HashMap<>();
+        Map<String, String> resultMap = new HashMap<>(2);
 
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order == null) {
@@ -105,7 +116,7 @@ public class OrderServiceImp implements IOrderService{
             }
 
             //二维码保存路径
-            String qrPath = String.format(savePath + "/qt-%s.png", payResult.getRespMsg().getTradeNo());
+            String qrPath = String.format(savePath  + File.separator + "qt-%s.png", payResult.getRespMsg().getTradeNo());
             //保存的文件名
             String qrFileName = String.format("qt-%s.png", payResult.getRespMsg().getTradeNo());
             ZxingUtils.getQRCodeImge(payResult.getRespMsg().getQrCode(), 256, qrPath);
@@ -174,7 +185,7 @@ public class OrderServiceImp implements IOrderService{
         payInfo.setPayPlatform(Const.PayPlatformEnum.ALIPAY.getCode());
         payInfo.setPlatformStatus(tradeStatus);
         payInfo.setPlatformNumber(tradeNo);
-
+        payInfo.setStoreId("test_store_id");
         payInfoMapper.insert(payInfo);
 
         return ServerResponse.createBySuccess();
@@ -322,7 +333,10 @@ public class OrderServiceImp implements IOrderService{
     }
 
     private Order assembleOrder(Integer userId, Integer shippingId, BigDecimal payment) {
-        long orderNo = generateOrderNo();
+        long orderNo = generateOrderNo(userId);
+        if (orderNo == 0) {
+            return null;
+        }
         Order order = new Order();
         order.setOrderNo(orderNo);
         order.setStatus(Const.OrderStatusEnum.NO_PAY.getCode());
@@ -336,7 +350,7 @@ public class OrderServiceImp implements IOrderService{
         //付款时间
 
         int rowCount = orderMapper.insert(order);
-        if(rowCount > 0){
+        if (rowCount > 0) {
             return order;
         }
         return null;
@@ -345,6 +359,26 @@ public class OrderServiceImp implements IOrderService{
     private long generateOrderNo() {
         long currentTime = System.currentTimeMillis();
         return currentTime + new Random().nextInt(100);
+    }
+
+    private long generateOrderNo(Integer userId){
+        log.info("开始生成订单号，用户id：{}" , userId);
+        long randomNumber = System.currentTimeMillis() + new Random().nextInt(1000);
+        String key = String.format("OrderNumber", userId);
+        //根据用户id在redis中写入生成的key 如果生成失败(即订单号生成发生重复)
+        //那么再次生成
+        Long setNxResult =
+                iRedisPoolService.setnx(key, String.valueOf(randomNumber));
+        if (setNxResult != null && setNxResult > 0) {
+            iRedisPoolService.delKey(key);
+            return randomNumber;
+        }
+        else {
+            //生成失败，递归调用再次生成
+            generateOrderNo(userId);
+        }
+        log.info("结束生成订单号，用户id：{}", userId);
+        return 0;
     }
 
     private BigDecimal getOrderTotalPrice(List<OrderItem> orderItemList) {
@@ -552,16 +586,16 @@ public class OrderServiceImp implements IOrderService{
 
     @Override
     public void closeOrder(int hour){
-        Date closeDate = org.apache.commons.lang.time.DateUtils.addHours(new Date(),-hour);
+        Date closeDate = org.apache.commons.lang.time.DateUtils.addHours(new Date(), -hour);
 
         List<Order> closerOrderList = orderMapper.selectOrderStatusByCreateTime(Const.OrderStatusEnum.NO_PAY.getCode(),
                 DateTimeUtil.dateToStr(closeDate));
 
-        for(Order order:closerOrderList){
+        for (Order order : closerOrderList) {
             List<OrderItem> orderItemList = orderItemMapper.getListByOrderNo(order.getOrderNo());
-            for(OrderItem orderItem:orderItemList){
+            for (OrderItem orderItem : orderItemList) {
                 int stock = productMapper.selectByPrimaryKey(orderItem.getProductId()).getStock();
-                if(stock == 0){
+                if (stock == 0) {
                     continue;
                 }
                 Product product = new Product();
@@ -570,7 +604,52 @@ public class OrderServiceImp implements IOrderService{
             }
 
             orderMapper.closeOrderByOrderId(order.getId());
-            log.info("关闭订单OrderNo:{}",order.getOrderNo());
+            log.info("关闭订单OrderNo:{}", order.getOrderNo());
         }
+    }
+
+    /**
+     * 退款
+     * @param orderNo
+     * @param userId
+     * @return
+     */
+    @Override
+    public ServerResponse<String> refund(Long orderNo, Integer userId, String refundReason) {
+        Order order = orderMapper.selectByOrderNo(orderNo);
+        //先检查订单是否存在
+        if (order == null) {
+            return ServerResponse.createByErrorMessage("订单不存在");
+        }
+
+        //校验支付状态
+        if (order.getStatus() != Const.OrderStatusEnum.PAID.getCode()) {
+            return ServerResponse.createByErrorMessage("当前不是已支付状态，无法退款");
+        }
+
+        //检查支付宝是否已经返回支付成功信息
+        PayInfo payInfo = payInfoMapper.selectByOrderNo(orderNo);
+        if (!payInfo.getPlatformStatus().equals(Const.AliPayCallBack.TRADE_STUAS_TRADE_SUCCESS)) {
+            return ServerResponse.createByErrorMessage("未支付成功的订单无法退款！");
+        }
+
+        //更新订单表订单状态
+        orderMapper.updateOrderStatusByOrderNoAndUserId(userId, orderNo,
+                Const.OrderStatusEnum.ORDER_REFUNDING.getCode());
+        //更新支付信息表平台支付状态
+        payInfoMapper.updatePlatformStatusByOrderNoAndUserId(userId,
+                orderNo, Const.AliPayCallBack.TRADE_STUAS_TRADE_REFUNDING);
+
+        //构建退款信息
+        RefundInfo refundInfo = new RefundInfo();
+        refundInfo.setOutTradNo(String.valueOf(payInfo.getOrderNo()));
+        refundInfo.setOutRequestNo("");
+        refundInfo.setRefundAmout(order.getPayment());
+        refundInfo.setStoreId(payInfo.getStoreId());
+        refundInfo.setRefundReason(refundReason);
+        refundInfo.setUserId(userId);
+        tradrThreadPoolTaskExecutor.submit(new AlipayRefundThread(refundInfo, iPayService));
+        log.info("用户：{},订单号：{}，退款信息：{}", userId, orderNo, refundInfo);
+        return ServerResponse.createBySuccessMessage("退款成功");
     }
 }

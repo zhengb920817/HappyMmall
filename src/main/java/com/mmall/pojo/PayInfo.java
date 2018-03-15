@@ -21,6 +21,8 @@ public class PayInfo {
 
     private String platformStatus;
 
+    private String storeId;
+
     private Date createTime;
 
     private Date updateTime;

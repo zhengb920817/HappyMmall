@@ -1,6 +1,7 @@
 package com.mmall.dao;
 
 import com.mmall.pojo.PayInfo;
+import org.apache.ibatis.annotations.Param;
 
 public interface PayInfoMapper {
     int deleteByPrimaryKey(Integer id);
@@ -14,4 +15,10 @@ public interface PayInfoMapper {
     int updateByPrimaryKeySelective(PayInfo record);
 
     int updateByPrimaryKey(PayInfo record);
+
+    PayInfo selectByOrderNo(Long orderNo);
+
+    int updatePlatformStatusByOrderNoAndUserId(@Param("userId") Integer userId,
+                                               @Param("orderNo") Long orderNo,
+                                               @Param("status") String status);
 }

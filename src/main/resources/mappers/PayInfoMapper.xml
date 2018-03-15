@@ -9,12 +9,13 @@
       <arg column="pay_platform" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="platform_number" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="platform_status" jdbcType="VARCHAR" javaType="java.lang.String" />
+      <arg column="store_id" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
       <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
     </constructor>
   </resultMap>
   <sql id="Base_Column_List" >
-    id, user_id, order_no, pay_platform, platform_number, platform_status, create_time, 
+    id, user_id, order_no, pay_platform, platform_number, store_id, platform_status, create_time,
     update_time
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
@@ -29,10 +30,16 @@
   </delete>
   <insert id="insert" parameterType="com.mmall.pojo.PayInfo" >
     insert into mmall_pay_info (id, user_id, order_no, 
-      pay_platform, platform_number, platform_status, 
+      pay_platform, platform_number, platform_status,store_id,
       create_time, update_time)
-    values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{orderNo,jdbcType=BIGINT}, 
-      #{payPlatform,jdbcType=INTEGER}, #{platformNumber,jdbcType=VARCHAR}, #{platformStatus,jdbcType=VARCHAR}, 
+    values
+      (#{id,jdbcType=INTEGER},
+      #{userId,jdbcType=INTEGER},
+      #{orderNo,jdbcType=BIGINT},
+      #{payPlatform,jdbcType=INTEGER},
+      #{platformNumber,jdbcType=VARCHAR},
+      #{platformStatus,jdbcType=VARCHAR},
+      #{storeId,jdbcType=VARCHAR},
       now(), now())
   </insert>
 
@@ -56,6 +63,9 @@
       </if>
       <if test="platformStatus != null" >
         platform_status,
+      </if>
+      <if test="storeId != null">
+        store_id,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -83,6 +93,9 @@
       <if test="platformStatus != null" >
         #{platformStatus,jdbcType=VARCHAR},
       </if>
+      <if test="storeId != null">
+        #{storeId, jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null" >
         now(),
       </if>
@@ -109,6 +122,9 @@
       <if test="platformStatus != null" >
         platform_status = #{platformStatus,jdbcType=VARCHAR},
       </if>
+      <if test="storeId != null">
+        store_id = #{storeId,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -125,8 +141,24 @@
       pay_platform = #{payPlatform,jdbcType=INTEGER},
       platform_number = #{platformNumber,jdbcType=VARCHAR},
       platform_status = #{platformStatus,jdbcType=VARCHAR},
+      store_id = #{storeId,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = now()
     where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="selectByOrderNo" resultMap="BaseResultMap" parameterType="long">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM mmall_pay_info
+    WHERE
+    order_no = #{orderNo}
+  </select>
+
+  <update id="updatePlatformStatusByOrderNoAndUserId" parameterType="map">
+    update mmall_pay_info
+    set platform_status = #{status}
+    where user_id = #{userId}
+    and order_no = #{orderNo}
   </update>
 </mapper>

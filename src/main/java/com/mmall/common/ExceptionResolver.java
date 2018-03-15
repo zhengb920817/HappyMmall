@@ -10,10 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Created by zhengb on 2018-03-09.
- */
-
-/**
  * @author zhengb
  * 全局异常处理类
  */

@@ -1,11 +1,12 @@
-package com.mmall.common;
+package com.mmall.common.pay;
 
 /**
  * Created by zhengb on 2018-02-11.
- * 支付结果返回信息
+ * 支付宝处理结果返回
+ * @author zhengb
  */
 public class PayResult<T>{
-    /*
+    /**
     返回消息体
      */
     private T respMsg;

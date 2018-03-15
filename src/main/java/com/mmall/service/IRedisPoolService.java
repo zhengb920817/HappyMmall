@@ -53,4 +53,6 @@ public interface IRedisPoolService {
     Long setnx(String key, String value) ;
 
     String getSet(String key, String value);
+
+    String rpop(String key);
 }

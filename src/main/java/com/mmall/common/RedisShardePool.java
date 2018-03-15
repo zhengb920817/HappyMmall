@@ -11,11 +11,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by zhengb on 2018-03-07.
- */
-
-/**
  * 分布式jedis连接池
+ * @author zhengb
  */
 public class RedisShardePool {
 

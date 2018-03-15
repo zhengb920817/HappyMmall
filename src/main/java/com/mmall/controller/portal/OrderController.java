@@ -208,4 +208,20 @@ public class OrderController {
         }
         return iOrderService.manageSendGoods(orderNo);
     }
+
+    @RequestMapping(value = "refund.do")
+    @ResponseBody
+    public ServerResponse<String> refund(HttpServletRequest servletRequest,
+                                         @RequestParam("orderNo") Long orderNo,
+                                         @RequestParam("refundReason")String refundReason) {
+
+        String loginToken = CookieUtil.readLoginToken(servletRequest);
+        String userJsonStr = iRedisPoolService.get(loginToken);
+        User currentUser = FastJsonUtil.jsonstr2Object(userJsonStr, User.class);
+        if (currentUser == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),
+                    ResponseCode.NEED_LOGIN.getDesc());
+        }
+        return iOrderService.refund(orderNo, currentUser.getId(), refundReason);
+    }
 }

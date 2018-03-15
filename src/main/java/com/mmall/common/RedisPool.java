@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * redis连接池
  */
+@Deprecated
 public class RedisPool {
     /**
      * jedis连接池

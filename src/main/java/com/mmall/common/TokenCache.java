@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
  * Created by zhengb on 2018-01-29.
  */
 @Slf4j
+@Deprecated
 public class TokenCache {
 
     public static String TOKEN_PREFIX = "Token_";

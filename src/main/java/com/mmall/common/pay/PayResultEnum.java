@@ -1,13 +1,15 @@
-package com.mmall.common;
+package com.mmall.common.pay;
 
 /**
  * Created by zhengb on 2018-02-11.
+ * @author zhengb
+ * 支付宝支付状态枚举
  */
 public enum PayResultEnum {
     SUCCESS(1,"支付宝预下单成功"),FAILED(2,"支付宝预下单失败"),UNKNOW(3,"系统异常，预下单状态未知!!!"),
     UNSURPPORT(4,"不支持的交易状态，交易返回异常!!!");
 
-    private PayResultEnum(int code,String desc){
+    PayResultEnum(int code,String desc){
         this.code = code;
         this.desc = desc;
     }

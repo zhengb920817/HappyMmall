@@ -19,8 +19,12 @@
     <aop:aspectj-autoproxy/>
 
 
+    <!--数据库配置-->
     <import resource="applicationContext-datasource.xml"/>
+    <!--springsession配置-->
     <import resource="applicationContext-spring-session.xml"/>
+    <!--spring线程池配置-->
+    <import resource="applicationContext-taskpool.xml"/>
     
     <task:annotation-driven />
     <context:property-placeholder location="classpath:datasource.properties"/>

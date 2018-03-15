@@ -78,4 +78,6 @@ public interface IOrderService {
     ServerResponse<String> manageSendGoods(Long orderNo);
 
     void closeOrder(int hour);
+
+    ServerResponse<String> refund(Long orderNo, Integer userId, String refundReason);
 }

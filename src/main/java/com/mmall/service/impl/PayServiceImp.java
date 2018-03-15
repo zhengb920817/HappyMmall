@@ -6,16 +6,15 @@ import com.alipay.demo.trade.config.Configs;
 import com.alipay.demo.trade.model.ExtendParams;
 import com.alipay.demo.trade.model.GoodsDetail;
 import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
+import com.alipay.demo.trade.model.builder.AlipayTradeRefundRequestBuilder;
 import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
+import com.alipay.demo.trade.model.result.AlipayF2FRefundResult;
 import com.alipay.demo.trade.service.AlipayMonitorService;
 import com.alipay.demo.trade.service.AlipayTradeService;
 import com.alipay.demo.trade.service.impl.AlipayMonitorServiceImpl;
 import com.alipay.demo.trade.service.impl.AlipayTradeServiceImpl;
 import com.alipay.demo.trade.service.impl.AlipayTradeWithHBServiceImpl;
-import com.mmall.common.AliPayInfo;
-import com.mmall.common.PayPrecreateResponse;
-import com.mmall.common.PayResult;
-import com.mmall.common.PayResultEnum;
+import com.mmall.common.pay.*;
 import com.mmall.pojo.OrderItem;
 import com.mmall.service.IPayService;
 import com.mmall.util.BigDecimalUtil;
@@ -51,6 +50,7 @@ public class PayServiceImp implements IPayService {
     private static AlipayMonitorService monitorService;
 
     static {
+
         /** 一定要在创建AlipayTradeService之前调用Configs.init()设置默认参数
          *  Configs会读取classpath下的zfbinfo.properties文件配置信息，如果找不到该文件则确认该文件是否在classpath目录
          */
@@ -171,6 +171,51 @@ public class PayServiceImp implements IPayService {
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);
 
         return getPayResult(result);
+    }
+
+    @Override
+    public boolean trade_Refund(RefundInfo refundInfo) {
+        String outTradeNo = refundInfo.getOutTradNo();
+
+        // (必填) 退款金额，该金额必须小于等于订单的支付金额，单位为元
+        String refundAmount = refundInfo.getRefundAmout().toString();
+
+        // (可选，需要支持重复退货时必填) 商户退款请求号，相同支付宝交易号下的不同退款请求号对应同一笔交易的不同退款申请，
+        // 对于相同支付宝交易号下多笔相同商户退款请求号的退款交易，支付宝只会进行一次退款
+        String outRequestNo = refundInfo.getOutRequestNo();
+
+        // (必填) 退款原因，可以说明用户退款原因，方便为商家后台提供统计
+        String refundReason = refundInfo.getRefundReason();
+
+        // (必填) 商户门店编号，退款情况下可以为商家后台提供退款权限判定和统计等作用，详询支付宝技术支持
+        String storeId = refundInfo.getStoreId();
+
+        // 创建退款请求builder，设置请求参数
+        AlipayTradeRefundRequestBuilder builder = new AlipayTradeRefundRequestBuilder()
+                .setOutTradeNo(outTradeNo)
+                .setRefundAmount(refundAmount)
+                .setRefundReason(refundReason)
+                .setOutRequestNo(outRequestNo)
+                .setStoreId(storeId);
+
+        AlipayF2FRefundResult result = tradeService.tradeRefund(builder);
+        switch (result.getTradeStatus()) {
+            case SUCCESS:
+                log.info("支付宝退款成功: )");
+                return true;
+
+            case FAILED:
+                log.error("支付宝退款失败!!!");
+                return false;
+
+            case UNKNOWN:
+                log.error("系统异常，订单退款状态未知!!!");
+                return false;
+
+            default:
+                log.error("不支持的交易状态，交易返回异常!!!");
+                return false;
+        }
     }
 
 }

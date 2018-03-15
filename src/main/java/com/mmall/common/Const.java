@@ -6,6 +6,8 @@ import java.util.Set;
 
 /**
  * Created by zhengb on 2018-01-21.
+ * @author zhengb
+ * 全局常量定义
  */
 public class Const {
     public static final String CURRENT_USER = "current_User";
@@ -109,7 +111,9 @@ public class Const {
         PAID(20, "已支付"),
         SHIPPED(40, "已发货"),
         ORDER_SUCCESS(50, "订单完成"),
-        ORDER_CLOSED(60, "订单关闭");
+        ORDER_REFUNDING(60,"退款中"),
+        ORDER_REFUND(70, "已退款"),
+        ORDER_CLOSED(80, "订单关闭");
 
         OrderStatusEnum(int code, String value) {
             this.code = code;
@@ -138,8 +142,23 @@ public class Const {
     }
 
     public interface AliPayCallBack{
+        /**
+         * 等待支付
+         */
         String TRADE_STUAS_WAIT_BUYER_PAY = "WAIT_BUYER_PAY";
+        /**
+         * 交易成功
+         */
         String TRADE_STUAS_TRADE_SUCCESS = "TRADE_SUCCESS";
+        /**
+         * 退款中
+         */
+        String TRADE_STUAS_TRADE_REFUNDING = "TRADE_REFUNDING";
+
+        /**
+         * 退款成功
+         */
+        String TRADE_STUAS_TRADE_REFUND_SUCCESS = "TRADE_REFUND_SUCCESS";
 
         String RESPONSE_SUCCESS = "success";
         String RESPONSE_FAILED = "failed";
@@ -204,5 +223,10 @@ public class Const {
 
     public interface REDIS_LOCK{
         String CLOSER_ORDER_TASK_LOCK = "CLOSER_ORDER_TASK_LOCK";
+        String REFUND_ORDER_TASK_LOCK = "REFUND_ORDER_TASK_LOCK";
+    }
+
+    public interface REDIS_KEY{
+        String REDIS_KEY_REFUNDREFUNDLIST = "REFUNDLIST";
     }
 }
